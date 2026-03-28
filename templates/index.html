@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Robo Downloader</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<div class="container">
+
+    <h1 class="logo">Robo Downloader</h1>
+
+    <!-- 🌙 Dark Mode -->
+    <button onclick="toggleDarkMode()" class="dark-btn">🌙 Dark Mode</button>
+
+    <div class="box">
+        <h2>Download Facebook Video</h2>
+
+        <!-- 🔥 PREVIEW FORM -->
+        <form method="POST" action="/" onsubmit="showLoader(event)">
+            <input type="text" name="url" placeholder="Paste Facebook link" required>
+
+            <select name="quality">
+                <option value="best" {% if quality == "best" %}selected{% endif %}>Best Quality</option>
+                <option value="low" {% if quality == "low" %}selected{% endif %}>Low Quality</option>
+            </select>
+
+            <button type="submit" class="download-btn">Preview</button>
+        </form>
+
+        <!-- Loader -->
+        <div class="loader hidden">Fetching preview...</div>
+
+        <!-- Progress -->
+        <div class="progress hidden">
+            <div class="progress-fill"></div>
+        </div>
+
+    </div>
+
+    <!-- Error -->
+    {% if error %}
+        <p class="error">{{ error }}</p>
+    {% endif %}
+
+    <!-- 🔥 PREVIEW SECTION -->
+    {% if title %}
+        <div class="preview">
+            <h3>{{ title }}</h3>
+            <img src="{{ thumbnail }}" alt="Thumbnail">
+
+            <!-- DOWNLOAD BUTTON -->
+            <form action="/download" method="POST">
+                <input type="hidden" name="url" value="{{ url }}">
+                <input type="hidden" name="quality" value="{{ quality }}">
+                <button type="submit" class="download-btn">⬇ Download Video</button>
+            </form>
+        </div>
+    {% endif %}
+
+    <!-- Developer -->
+    <div class="about">
+        <h3>👨‍💻 Developer</h3>
+        <p><strong>Name:</strong> Shamiul Islam</p>
+        <p><strong>Email:</strong> shamiulislambayazid@gmail.com</p>
+        <p>
+            <strong>LinkedIn:</strong> 
+            <a href="https://www.linkedin.com/in/shamiul-islam-a2580b363" target="_blank">
+                Visit Profile
+            </a>
+        </p>
+    </div>
+
+</div>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+
+</body>
+</html>
