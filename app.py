@@ -5,7 +5,8 @@ import uuid
 import threading
 import time
 
-app = Flask(__name__)
+# 🔥 IMPORTANT (static + templates fix)
+app = Flask(__name__, static_folder="static", template_folder="templates")
 
 DOWNLOAD_FOLDER = "downloads"
 
@@ -13,9 +14,9 @@ if not os.path.exists(DOWNLOAD_FOLDER):
     os.makedirs(DOWNLOAD_FOLDER)
 
 
-# 🔥 Auto delete function
+# 🔥 Auto delete function (time increase)
 def delete_file(path):
-    time.sleep(10)  # 10 sec pore delete
+    time.sleep(60)  # 1 min pore delete
     if os.path.exists(path):
         os.remove(path)
 
@@ -25,6 +26,7 @@ def delete_file(path):
 def index():
     if request.method == "POST":
         url = request.form.get("url")
+        quality = request.form.get("quality")
 
         try:
             with yt_dlp.YoutubeDL({
@@ -37,7 +39,8 @@ def index():
                 "index.html",
                 title=info.get("title"),
                 thumbnail=info.get("thumbnail"),
-                url=url
+                url=url,
+                quality=quality
             )
 
         except Exception:
@@ -46,17 +49,24 @@ def index():
     return render_template("index.html")
 
 
-# 🔹 ULTRA FAST DOWNLOAD (LOW QUALITY)
+# 🔹 DOWNLOAD (QUALITY SUPPORT ADDED)
 @app.route("/download", methods=["POST"])
 def download():
     url = request.form.get("url")
+    quality = request.form.get("quality")
 
     unique_id = str(uuid.uuid4())
     output_path = f"{DOWNLOAD_FOLDER}/{unique_id}.mp4"
 
+    # 🎯 Quality control
+    if quality == "best":
+        format_type = "best[ext=mp4]/best"
+    else:
+        format_type = "worst[ext=mp4]/worst"
+
     ydl_opts = {
         "outtmpl": output_path,
-        "format": "worst[ext=mp4]/worst",
+        "format": format_type,
         "quiet": True,
         "noplaylist": True,
         "concurrent_fragment_downloads": 5
@@ -75,5 +85,6 @@ def download():
         return render_template("index.html", error="Download failed!")
 
 
+# ❌ debug remove (Render friendly)
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()
