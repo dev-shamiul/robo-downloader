@@ -5,7 +5,7 @@ import uuid
 import threading
 import time
 
-# 🔥 IMPORTANT (static + templates fix)
+# 🔥 Render friendly setup
 app = Flask(__name__, static_folder="static", template_folder="templates")
 
 DOWNLOAD_FOLDER = "downloads"
@@ -14,14 +14,20 @@ if not os.path.exists(DOWNLOAD_FOLDER):
     os.makedirs(DOWNLOAD_FOLDER)
 
 
-# 🔥 Auto delete function (safe time)
+# 🔥 Health check route (IMPORTANT for UptimeRobot)
+@app.route("/ping")
+def ping():
+    return "OK", 200
+
+
+# 🔥 Auto delete function
 def delete_file(path):
-    time.sleep(60)  # 1 min pore delete
+    time.sleep(60)
     if os.path.exists(path):
         os.remove(path)
 
 
-# 🔹 Preview (lightweight)
+# 🔹 Preview page
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
@@ -49,7 +55,7 @@ def index():
     return render_template("index.html")
 
 
-# 🔹 DOWNLOAD (MEDIUM QUALITY DEFAULT)
+# 🔹 Download route
 @app.route("/download", methods=["POST"])
 def download():
     url = request.form.get("url")
@@ -58,11 +64,10 @@ def download():
     unique_id = str(uuid.uuid4())
     output_path = f"{DOWNLOAD_FOLDER}/{unique_id}.mp4"
 
-    # 🎯 Quality control (MEDIUM DEFAULT)
+    # 🎯 Quality control
     if quality == "best":
         format_type = "best[height<=1080][ext=mp4]/best"
     else:
-        # 🔥 MEDIUM (720p best)
         format_type = "best[height<=720][ext=mp4]/best"
 
     ydl_opts = {
@@ -77,7 +82,7 @@ def download():
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([url])
 
-        # 🔥 AUTO DELETE START
+        # 🔥 Auto delete thread
         threading.Thread(target=delete_file, args=(output_path,)).start()
 
         return send_file(output_path, as_attachment=True)
@@ -86,6 +91,7 @@ def download():
         return render_template("index.html", error="Download failed!")
 
 
-# ❌ debug remove (Render friendly)
+# 🔥 Render production run (IMPORTANT)
 if __name__ == "__main__":
-    app.run()
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
